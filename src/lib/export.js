@@ -1,9 +1,7 @@
 /**
  * Triggers a file download in the browser.
  * The anchor must be briefly appended to the document for Firefox compatibility.
- * The object URL is revoked after a short delay to avoid a race condition where
- * the browser hasn't started the download before the URL is invalidated.
- * @param {string} url - object URL or data URL
+ * @param {string} url - data URL
  * @param {string} filename
  */
 function triggerDownload(url, filename) {
@@ -14,7 +12,6 @@ function triggerDownload(url, filename) {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
 /**
@@ -26,15 +23,13 @@ function triggerDownload(url, filename) {
  */
 export function downloadPNG(canvas, filename = 'illusion-knitting-chart.png', onError, onSuccess) {
   try {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        onError?.('Could not generate PNG. The canvas may be empty.')
-        return
-      }
-      const url = URL.createObjectURL(blob)
-      triggerDownload(url, filename)
-      onSuccess?.()
-    }, 'image/png')
+    const url = canvas.toDataURL('image/png')
+    if (!url || url === 'data:,') {
+      onError?.('Could not generate PNG. The canvas may be empty.')
+      return
+    }
+    triggerDownload(url, filename)
+    onSuccess?.()
   } catch (err) {
     onError?.('Could not generate PNG: ' + err.message)
   }
@@ -54,8 +49,7 @@ export function downloadPNG(canvas, filename = 'illusion-knitting-chart.png', on
 export function downloadCSV(chart, filename = 'illusion-knitting-chart.csv', onError, onSuccess) {
   try {
     const csv = chart.map((row) => row.join(',')).join('\r\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
+    const url = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv)
     triggerDownload(url, filename)
     onSuccess?.()
   } catch (err) {
