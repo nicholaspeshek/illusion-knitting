@@ -1,11 +1,12 @@
 <script>
-  import { cellColor, MARGIN_LEFT } from '../pattern.js'
+  import { cellColor } from '../pattern.js'
 
-  /** @type {{ chart: string[][]|null, canvasRef: HTMLCanvasElement|null, cellSize: number, scrollContainerRef: HTMLElement|null, gridColor: string }} */
-  let { chart = null, canvasRef = $bindable(null), cellSize = 12, scrollContainerRef = $bindable(null), gridColor = '#6b7280' } = $props()
+  /** @type {{ chart: string[][]|null, canvasRef: HTMLCanvasElement|null, cellSize: number, scrollContainerRef: HTMLElement|null, gridColor: string, cellGridColor: string }} */
+  let { chart = null, canvasRef = $bindable(null), cellSize = 12, scrollContainerRef = $bindable(null), gridColor = '#6b7280', cellGridColor = '#f3f4f6' } = $props()
 
   const GAP = 1
-  const MARGIN_BOTTOM = 24
+  const MARGIN_LEFT = 0
+  const MARGIN_BOTTOM = 20
 
   let rafId = 0
 
@@ -15,14 +16,15 @@
     const currentChart = chart
     const currentCellSize = cellSize
     const currentGridColor = gridColor
+    const currentCellGridColor = cellGridColor
     cancelAnimationFrame(rafId)
     rafId = requestAnimationFrame(() => {
-      renderChart(currentCanvas, currentChart, currentCellSize, currentGridColor)
+      renderChart(currentCanvas, currentChart, currentCellSize, currentGridColor, currentCellGridColor)
     })
     return () => cancelAnimationFrame(rafId)
   })
 
-  function renderChart(canvas, chart, cell, gridColor) {
+  function renderChart(canvas, chart, cell, gridColor, cellGridColor) {
     const stride = cell + GAP
     const ridges = chart.length
     const stitches = chart[0].length
@@ -39,27 +41,16 @@
     const ctx = canvas.getContext('2d')
     ctx.scale(dpr, dpr)
 
-    ctx.fillStyle = '#f3f4f6'
+    ctx.fillStyle = cellGridColor
     ctx.fillRect(0, 0, width, height)
 
     for (let r = 0; r < ridges; r++) {
       const y = (ridges - 1 - r) * stride + GAP
 
       for (let s = 0; s < stitches; s++) {
-        const x = MARGIN_LEFT + s * stride + GAP
+        const x = s * stride + GAP
         ctx.fillStyle = cellColor(chart[r][s])
         ctx.fillRect(x, y, cell, cell)
-      }
-
-      const ridgeNum = r + 1
-      const fontSize = Math.min(10, cell)
-      const labelEvery = fontSize < 5 ? 50 : fontSize < 8 ? 10 : 5
-      if (ridgeNum === 1 || ridgeNum === ridges || ridgeNum % labelEvery === 0) {
-        ctx.fillStyle = '#374151'
-        ctx.font = `${fontSize}px sans-serif`
-        ctx.textAlign = 'right'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(String(ridgeNum), MARGIN_LEFT - 4, y + cell / 2)
       }
     }
 
@@ -67,17 +58,19 @@
     ctx.font = '9px sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'top'
-    for (let s = 0; s < stitches; s++) {
-      const stitchNum = s + 1
-      if (stitchNum === 1 || stitchNum === stitches || stitchNum % 10 === 0) {
-        ctx.fillText(String(stitchNum), MARGIN_LEFT + s * stride + GAP + cell / 2, ridges * stride + GAP + 3)
-      }
+    for (let s = 9; s < stitches; s += 10) {
+      ctx.fillText(String(s + 1), s * stride + GAP + cell / 2, ridges * stride + GAP + 3)
+    }
+    // Last stitch label (only if not already covered by the multiples-of-10 loop)
+    if (stitches % 10 !== 0) {
+      const s = stitches - 1
+      ctx.fillText(String(stitches), s * stride + GAP + cell / 2, ridges * stride + GAP + 3)
     }
 
     ctx.strokeStyle = gridColor
     ctx.lineWidth = 1 / dpr
     for (let s = 10; s < stitches; s += 10) {
-      const x = MARGIN_LEFT + s * stride + GAP - 1
+      const x = s * stride + GAP - 1
       ctx.beginPath()
       ctx.moveTo(x, 0)
       ctx.lineTo(x, ridges * stride + GAP)
@@ -86,7 +79,7 @@
     for (let r = 10; r < ridges; r += 10) {
       const y = (ridges - r) * stride + GAP - 1
       ctx.beginPath()
-      ctx.moveTo(MARGIN_LEFT, y)
+      ctx.moveTo(0, y)
       ctx.lineTo(width, y)
       ctx.stroke()
     }
@@ -128,7 +121,7 @@
     border-radius: 6px;
     width: 100%;
     box-sizing: border-box;
-    resize: vertical;
+    resize: both;
     min-height: 120px;
     height: min(65vh, 700px);
   }

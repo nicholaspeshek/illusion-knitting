@@ -7,11 +7,13 @@
    *   viewingDirection: 'below'|'side',
    *   aspectRatio: number|null,
    *   gridDarkness: number,
+   *   cellGridDarkness: number,
    *   onStitchesChange: (v: number) => void,
    *   onRidgesChange: (v: number) => void,
    *   onThresholdChange: (v: number) => void,
    *   onViewingDirectionChange: (v: string) => void,
    *   onGridDarknessChange: (v: number) => void,
+   *   onCellGridDarknessChange: (v: number) => void,
    * }}
    */
   let {
@@ -21,12 +23,18 @@
     viewingDirection,
     aspectRatio,
     gridDarkness,
+    cellGridDarkness,
     onStitchesChange,
     onRidgesChange,
     onThresholdChange,
     onViewingDirectionChange,
     onGridDarknessChange,
+    onCellGridDarknessChange,
   } = $props()
+
+  function darknessLabel(v) {
+    return v === 0 ? 'White' : v === 100 ? 'Black' : v + '%'
+  }
 
   let lockAspectRatio = $state(true)
 
@@ -135,26 +143,44 @@
     </div>
 
     <div class="field">
-      <label for="grid-color-input">
-        Grid color: <strong>{gridDarkness === 0 ? 'White' : gridDarkness === 100 ? 'Black' : gridDarkness + '%'}</strong>
+      <label for="cell-grid-input">
+        Cell grid color: <strong>{darknessLabel(cellGridDarkness)}</strong>
       </label>
-      <div class="grid-color-track">
-        <input
-          id="grid-color-input"
-          type="range"
-          min="0"
-          max="100"
-          value={gridDarkness}
-          oninput={(e) => onGridDarknessChange(parseInt(e.target.value))}
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-valuenow={gridDarkness}
-          aria-describedby="grid-color-hint"
-        />
-      </div>
-      <div class="grid-color-labels" aria-hidden="true">
-        <span>White</span><span>Black</span>
-      </div>
+      <input
+        id="cell-grid-input"
+        type="range"
+        min="0"
+        max="100"
+        value={cellGridDarkness}
+        oninput={(e) => onCellGridDarknessChange(parseInt(e.target.value))}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={cellGridDarkness}
+        aria-describedby="cell-grid-hint"
+        class="gradient-slider"
+      />
+      <div class="slider-end-labels" aria-hidden="true"><span>White</span><span>Black</span></div>
+      <span id="cell-grid-hint" class="hint">Color of the 1-stitch grid lines (gaps between every cell).</span>
+    </div>
+
+    <div class="field">
+      <label for="grid-color-input">
+        Major grid color: <strong>{darknessLabel(gridDarkness)}</strong>
+      </label>
+      <input
+        id="grid-color-input"
+        type="range"
+        min="0"
+        max="100"
+        value={gridDarkness}
+        oninput={(e) => onGridDarknessChange(parseInt(e.target.value))}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={gridDarkness}
+        aria-describedby="grid-color-hint"
+        class="gradient-slider"
+      />
+      <div class="slider-end-labels" aria-hidden="true"><span>White</span><span>Black</span></div>
       <span id="grid-color-hint" class="hint">Color of the 10-stitch grid lines on the chart.</span>
     </div>
 
@@ -324,17 +350,16 @@
     margin-left: 1.4rem;
   }
 
-  .grid-color-track input[type='range'] {
+  .gradient-slider {
     background: linear-gradient(to right, #ffffff, #000000);
     appearance: none;
     -webkit-appearance: none;
     height: 6px;
     border-radius: 3px;
     border: 1px solid #d1d5db;
-    accent-color: #2563eb;
   }
 
-  .grid-color-labels {
+  .slider-end-labels {
     display: flex;
     justify-content: space-between;
     font-size: 0.7rem;
