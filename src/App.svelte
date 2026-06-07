@@ -17,6 +17,13 @@
   let canvasRef = $state(null)
   let cellSize = $state(12)
   let scrollContainerRef = $state(null)
+  let gridDarkness = $state(55)
+
+  let gridColor = $derived((() => {
+    const v = Math.round(255 * (1 - gridDarkness / 100))
+    const h = v.toString(16).padStart(2, '0')
+    return '#' + h + h + h
+  })())
 
   let aspectRatio = $derived(img ? img.naturalWidth / img.naturalHeight : null)
 
@@ -139,10 +146,12 @@
             {threshold}
             {viewingDirection}
             {aspectRatio}
+            {gridDarkness}
             onStitchesChange={(v) => (stitches = v)}
             onRidgesChange={(v) => (ridges = v)}
             onThresholdChange={(v) => (threshold = v)}
             onViewingDirectionChange={(v) => (viewingDirection = v)}
+            onGridDarknessChange={(v) => (gridDarkness = v)}
           />
         </div>
 
@@ -167,7 +176,7 @@
           </svg>
         </button>
       {/if}
-      <ChartPreview {chart} {cellSize} bind:canvasRef bind:scrollContainerRef />
+      <ChartPreview {chart} {cellSize} {gridColor} bind:canvasRef bind:scrollContainerRef />
     </div>
   </div>
 </main>

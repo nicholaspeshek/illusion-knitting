@@ -1,8 +1,8 @@
 <script>
   import { cellColor, MARGIN_LEFT } from '../pattern.js'
 
-  /** @type {{ chart: string[][]|null, canvasRef: HTMLCanvasElement|null, cellSize: number, scrollContainerRef: HTMLElement|null }} */
-  let { chart = null, canvasRef = $bindable(null), cellSize = 12, scrollContainerRef = $bindable(null) } = $props()
+  /** @type {{ chart: string[][]|null, canvasRef: HTMLCanvasElement|null, cellSize: number, scrollContainerRef: HTMLElement|null, gridColor: string }} */
+  let { chart = null, canvasRef = $bindable(null), cellSize = 12, scrollContainerRef = $bindable(null), gridColor = '#6b7280' } = $props()
 
   const GAP = 1
   const MARGIN_BOTTOM = 24
@@ -14,14 +14,15 @@
     const currentCanvas = canvasRef
     const currentChart = chart
     const currentCellSize = cellSize
+    const currentGridColor = gridColor
     cancelAnimationFrame(rafId)
     rafId = requestAnimationFrame(() => {
-      renderChart(currentCanvas, currentChart, currentCellSize)
+      renderChart(currentCanvas, currentChart, currentCellSize, currentGridColor)
     })
     return () => cancelAnimationFrame(rafId)
   })
 
-  function renderChart(canvas, chart, cell) {
+  function renderChart(canvas, chart, cell, gridColor) {
     const stride = cell + GAP
     const ridges = chart.length
     const stitches = chart[0].length
@@ -73,7 +74,7 @@
       }
     }
 
-    ctx.strokeStyle = '#6b7280'
+    ctx.strokeStyle = gridColor
     ctx.lineWidth = 1 / dpr
     for (let s = 10; s < stitches; s += 10) {
       const x = MARGIN_LEFT + s * stride + GAP - 1
@@ -127,6 +128,9 @@
     border-radius: 6px;
     width: 100%;
     box-sizing: border-box;
+    resize: vertical;
+    min-height: 120px;
+    height: min(65vh, 700px);
   }
 
   .canvas-scroll:focus-visible {

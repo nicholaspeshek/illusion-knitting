@@ -6,10 +6,12 @@
    *   threshold: number,
    *   viewingDirection: 'below'|'side',
    *   aspectRatio: number|null,
+   *   gridDarkness: number,
    *   onStitchesChange: (v: number) => void,
    *   onRidgesChange: (v: number) => void,
    *   onThresholdChange: (v: number) => void,
    *   onViewingDirectionChange: (v: string) => void,
+   *   onGridDarknessChange: (v: number) => void,
    * }}
    */
   let {
@@ -18,10 +20,12 @@
     threshold,
     viewingDirection,
     aspectRatio,
+    gridDarkness,
     onStitchesChange,
     onRidgesChange,
     onThresholdChange,
     onViewingDirectionChange,
+    onGridDarknessChange,
   } = $props()
 
   let lockAspectRatio = $state(true)
@@ -128,6 +132,30 @@
         Pixels darker than this value become knit stitches (foreground).
         Lower = less of the image; higher = more.
       </span>
+    </div>
+
+    <div class="field">
+      <label for="grid-color-input">
+        Grid color: <strong>{gridDarkness === 0 ? 'White' : gridDarkness === 100 ? 'Black' : gridDarkness + '%'}</strong>
+      </label>
+      <div class="grid-color-track">
+        <input
+          id="grid-color-input"
+          type="range"
+          min="0"
+          max="100"
+          value={gridDarkness}
+          oninput={(e) => onGridDarknessChange(parseInt(e.target.value))}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={gridDarkness}
+          aria-describedby="grid-color-hint"
+        />
+      </div>
+      <div class="grid-color-labels" aria-hidden="true">
+        <span>White</span><span>Black</span>
+      </div>
+      <span id="grid-color-hint" class="hint">Color of the 10-stitch grid lines on the chart.</span>
     </div>
 
     <fieldset>
@@ -294,5 +322,23 @@
     color: #6b7280;
     flex-basis: 100%;
     margin-left: 1.4rem;
+  }
+
+  .grid-color-track input[type='range'] {
+    background: linear-gradient(to right, #ffffff, #000000);
+    appearance: none;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    border: 1px solid #d1d5db;
+    accent-color: #2563eb;
+  }
+
+  .grid-color-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 0.15rem;
   }
 </style>
