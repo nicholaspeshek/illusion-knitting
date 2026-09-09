@@ -1,11 +1,10 @@
 <script>
-  import { cellColor } from '../pattern.js'
+  import { cellColor, MARGIN_LEFT } from '../pattern.js'
 
   /** @type {{ chart: string[][]|null, canvasRef: HTMLCanvasElement|null, cellSize: number, scrollContainerRef: HTMLElement|null, gridColor: string, cellGridColor: string }} */
   let { chart = null, canvasRef = $bindable(null), cellSize = 12, scrollContainerRef = $bindable(null), gridColor = '#6b7280', cellGridColor = '#f3f4f6' } = $props()
 
   const GAP = 1
-  const MARGIN_LEFT = 0
   const MARGIN_BOTTOM = 20
   const LABEL_FONT_SIZE = 9
   const LABEL_FONT_FAMILY = 'system-ui, -apple-system, sans-serif'
@@ -50,7 +49,7 @@
       const y = (ridges - 1 - r) * stride + GAP
 
       for (let s = 0; s < stitches; s++) {
-        const x = s * stride + GAP
+        const x = MARGIN_LEFT + s * stride + GAP
         ctx.fillStyle = cellColor(chart[r][s])
         ctx.fillRect(x, y, cell, cell)
       }
@@ -88,14 +87,31 @@
       const labelBaseline = labelTop + maxAscent
 
       for (const { s, text, metrics } of labels) {
-        drawCenteredLabel(ctx, text, metrics, s * stride + GAP + cell / 2, labelBaseline)
+        drawCenteredLabel(ctx, text, metrics, MARGIN_LEFT + s * stride + GAP + cell / 2, labelBaseline)
+      }
+    }
+
+    const ridgeLabelIndices = []
+    for (let r = 9; r < ridges; r += 10) {
+      ridgeLabelIndices.push(r)
+    }
+    if (ridges % 10 !== 0) {
+      ridgeLabelIndices.push(ridges - 1)
+    }
+
+    if (ridgeLabelIndices.length > 0) {
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'middle'
+
+      for (const r of ridgeLabelIndices) {
+        ctx.fillText(String(r + 1), MARGIN_LEFT - 4, (ridges - 1 - r) * stride + GAP + cell / 2)
       }
     }
 
     ctx.strokeStyle = gridColor
     ctx.lineWidth = 1 / dpr
     for (let s = 10; s < stitches; s += 10) {
-      const x = s * stride + GAP - 1
+      const x = MARGIN_LEFT + s * stride + GAP - 1
       ctx.beginPath()
       ctx.moveTo(x, 0)
       ctx.lineTo(x, ridges * stride + GAP)
@@ -104,7 +120,7 @@
     for (let r = 10; r < ridges; r += 10) {
       const y = (ridges - r) * stride + GAP - 1
       ctx.beginPath()
-      ctx.moveTo(0, y)
+      ctx.moveTo(MARGIN_LEFT, y)
       ctx.lineTo(width, y)
       ctx.stroke()
     }
