@@ -7,6 +7,8 @@
   const GAP = 1
   const MARGIN_LEFT = 0
   const MARGIN_BOTTOM = 20
+  const LABEL_FONT_SIZE = 9
+  const LABEL_FONT_FAMILY = 'system-ui, -apple-system, sans-serif'
 
   let rafId = 0
 
@@ -55,16 +57,39 @@
     }
 
     ctx.fillStyle = '#374151'
-    ctx.font = '9px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'top'
+    ctx.font = `${LABEL_FONT_SIZE}px ${LABEL_FONT_FAMILY}`
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+
+    const labelIndices = []
     for (let s = 9; s < stitches; s += 10) {
-      ctx.fillText(String(s + 1), s * stride + GAP + cell / 2, ridges * stride + GAP + 3)
+      labelIndices.push(s)
     }
     // Last stitch label (only if not already covered by the multiples-of-10 loop)
     if (stitches % 10 !== 0) {
-      const s = stitches - 1
-      ctx.fillText(String(stitches), s * stride + GAP + cell / 2, ridges * stride + GAP + 3)
+      labelIndices.push(stitches - 1)
+    }
+
+    if (labelIndices.length > 0) {
+      const labels = labelIndices.map((s) => {
+        const text = String(s + 1)
+        const metrics = ctx.measureText(text)
+        return { s, text, metrics }
+      })
+      const maxAscent = labels.reduce(
+        (max, { metrics }) => Math.max(max, Number.isFinite(metrics.actualBoundingBoxAscent) ? metrics.actualBoundingBoxAscent : LABEL_FONT_SIZE),
+        LABEL_FONT_SIZE
+      )
+      const maxDescent = labels.reduce(
+        (max, { metrics }) => Math.max(max, Number.isFinite(metrics.actualBoundingBoxDescent) ? metrics.actualBoundingBoxDescent : 0),
+        0
+      )
+      const labelTop = ridges * stride + GAP + Math.max(0, (MARGIN_BOTTOM - maxAscent - maxDescent) / 2)
+      const labelBaseline = labelTop + maxAscent
+
+      for (const { s, text, metrics } of labels) {
+        drawCenteredLabel(ctx, text, metrics, s * stride + GAP + cell / 2, labelBaseline)
+      }
     }
 
     ctx.strokeStyle = gridColor
@@ -83,6 +108,12 @@
       ctx.lineTo(width, y)
       ctx.stroke()
     }
+  }
+
+  function drawCenteredLabel(ctx, text, metrics, centerX, baselineY) {
+    const left = Number.isFinite(metrics.actualBoundingBoxLeft) ? metrics.actualBoundingBoxLeft : 0
+    const right = Number.isFinite(metrics.actualBoundingBoxRight) ? metrics.actualBoundingBoxRight : metrics.width
+    ctx.fillText(text, centerX - (right - left) / 2, baselineY)
   }
 </script>
 
